@@ -1,56 +1,28 @@
 <script lang="ts">
 	import { store } from '$lib/caught.svelte';
-	import {
-		ALL_TYPES,
-		GENERATIONS,
-		GAMES,
-		POKEMON,
-		TYPE_COLORS,
-		type Pokemon
-	} from '$lib/pokemon';
+	import { filters } from '$lib/filters.svelte';
+	import { GENERATIONS, POKEMON, type Pokemon } from '$lib/pokemon';
 	import PokemonCard from '$lib/components/PokemonCard.svelte';
+	import SearchBar from '$lib/components/SearchBar.svelte';
 
-	let query = $state('');
 	let importError = $state('');
 	let fileInput = $state<HTMLInputElement>();
 
-	type CaughtFilter = 'all' | 'caught' | 'uncaught';
-	let caughtFilter = $state<CaughtFilter>('all');
-	let gameFilter = $state('');
-	let typeFilter = $state(new Set<string>());
-
-	function toggleType(type: string) {
-		const next = new Set(typeFilter);
-		if (next.has(type)) next.delete(type);
-		else next.add(type);
-		typeFilter = next;
-	}
-
-	const hasActiveFilters = $derived(
-		query.trim() !== '' ||
-			caughtFilter !== 'all' ||
-			gameFilter !== '' ||
-			typeFilter.size > 0
-	);
-
-	function clearFilters() {
-		query = '';
-		caughtFilter = 'all';
-		gameFilter = '';
-		typeFilter = new Set();
-	}
+	const hasActiveFilters = $derived(filters.hasActive);
 
 	const filtered = $derived.by(() => {
-		const q = query.trim().toLowerCase();
+		const q = filters.query.trim().toLowerCase();
 		return POKEMON.filter((p) => {
 			if (q && !(p.name.toLowerCase().includes(q) || String(p.id).includes(q))) {
 				return false;
 			}
 			const caught = store.caught.has(p.id);
-			if (caughtFilter === 'caught' && !caught) return false;
-			if (caughtFilter === 'uncaught' && caught) return false;
-			if (gameFilter && !p.games.includes(gameFilter)) return false;
-			if (typeFilter.size > 0 && !p.types.some((t) => typeFilter.has(t))) return false;
+			if (filters.caught === 'caught' && !caught) return false;
+			if (filters.caught === 'uncaught' && caught) return false;
+			if (filters.game && !p.games.includes(filters.game)) return false;
+			if (filters.types.size > 0 && !p.types.some((t) => filters.types.has(t))) {
+				return false;
+			}
 			return true;
 		});
 	});
@@ -115,12 +87,7 @@
 		</div>
 
 		<div class="toolbar">
-			<input
-				type="search"
-				placeholder="Search by name or dex number…"
-				bind:value={query}
-				aria-label="Search Pokémon"
-			/>
+			<SearchBar />
 			<div class="actions">
 				<button type="button" onclick={exportSave} disabled={store.count === 0}>
 					Export
@@ -140,65 +107,8 @@
 			<p class="error" role="alert">{importError}</p>
 		{/if}
 
-		<div class="filters">
-			<div class="filter-group">
-				<span class="filter-label">Caught</span>
-				<div class="segmented" role="group" aria-label="Caught filter">
-					<button
-						type="button"
-						class:active={caughtFilter === 'all'}
-						aria-pressed={caughtFilter === 'all'}
-						onclick={() => (caughtFilter = 'all')}>All</button
-					>
-					<button
-						type="button"
-						class:active={caughtFilter === 'caught'}
-						aria-pressed={caughtFilter === 'caught'}
-						onclick={() => (caughtFilter = 'caught')}>Caught</button
-					>
-					<button
-						type="button"
-						class:active={caughtFilter === 'uncaught'}
-						aria-pressed={caughtFilter === 'uncaught'}
-						onclick={() => (caughtFilter = 'uncaught')}>Uncaught</button
-					>
-				</div>
-			</div>
-
-			<div class="filter-group">
-				<label class="filter-label" for="game-filter">Game</label>
-				<select id="game-filter" bind:value={gameFilter}>
-					<option value="">All games</option>
-					{#each GAMES as game (game.id)}
-						<option value={game.id}>{game.name}</option>
-					{/each}
-				</select>
-			</div>
-
-			<div class="filter-group">
-				<span class="filter-label">Types</span>
-				<div class="type-chips">
-					{#each ALL_TYPES as type (type)}
-						<button
-							type="button"
-							class="type-chip"
-							class:active={typeFilter.has(type)}
-							style="--type: {TYPE_COLORS[type] ?? '#9099a1'}"
-							aria-pressed={typeFilter.has(type)}
-							onclick={() => toggleType(type)}
-						>
-							{type}
-						</button>
-					{/each}
-				</div>
-			</div>
-		</div>
-
 		{#if hasActiveFilters}
-			<p class="filter-status">
-				{filtered.length} of {POKEMON.length} shown
-				<button type="button" class="clear" onclick={clearFilters}>Clear filters</button>
-			</p>
+			<p class="filter-status">{filtered.length} of {POKEMON.length} shown</p>
 		{/if}
 	</header>
 
@@ -225,7 +135,7 @@
 			<p class="empty">
 				No Pokémon match the current {hasActiveFilters ? 'search and filters' : 'search'}.
 				{#if hasActiveFilters}
-					<button type="button" class="clear" onclick={clearFilters}>Clear filters</button>
+					<button type="button" class="clear" onclick={filters.clearAll}>Clear filters</button>
 				{/if}
 			</p>
 		{/each}
@@ -290,21 +200,6 @@
 		flex-wrap: wrap;
 	}
 
-	input[type='search'] {
-		flex: 1;
-		min-width: 220px;
-		padding: 10px 14px;
-		background: var(--bg-soft);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		color: var(--text);
-		outline: none;
-	}
-
-	input[type='search']:focus {
-		border-color: var(--accent);
-	}
-
 	.actions {
 		display: flex;
 		gap: 8px;
@@ -334,112 +229,7 @@
 		color: #ff8a80;
 	}
 
-	.filters {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 16px 24px;
-		align-items: flex-end;
-		margin-top: 14px;
-		padding: 12px 14px;
-		background: var(--bg-soft);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-
-	.filter-group {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.filter-label {
-		font-size: 11px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--text-dim);
-	}
-
-	.segmented {
-		display: inline-flex;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		overflow: hidden;
-	}
-
-	.segmented button {
-		padding: 6px 14px;
-		background: transparent;
-		border: none;
-		border-right: 1px solid var(--border);
-		cursor: pointer;
-		color: var(--text-dim);
-		font-weight: 600;
-		transition: background 120ms ease, color 120ms ease;
-	}
-
-	.segmented button:last-child {
-		border-right: none;
-	}
-
-	.segmented button:hover {
-		color: var(--text);
-	}
-
-	.segmented button.active {
-		background: var(--accent);
-		color: #fff;
-	}
-
-	select {
-		padding: 6px 12px;
-		background: var(--card);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		color: var(--text);
-		cursor: pointer;
-		outline: none;
-	}
-
-	select:focus {
-		border-color: var(--accent);
-	}
-
-	.type-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		max-width: 520px;
-	}
-
-	.type-chip {
-		padding: 4px 10px;
-		border: 1px solid var(--border);
-		border-radius: 99px;
-		background: transparent;
-		color: var(--text-dim);
-		font-size: 12px;
-		font-weight: 600;
-		text-transform: capitalize;
-		cursor: pointer;
-		transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-	}
-
-	.type-chip:hover {
-		border-color: var(--type);
-		color: var(--text);
-	}
-
-	.type-chip.active {
-		background: var(--type);
-		border-color: var(--type);
-		color: #10151f;
-	}
-
 	.filter-status {
-		display: flex;
-		align-items: center;
-		gap: 12px;
 		margin: 10px 0 0;
 		font-size: 13px;
 		color: var(--text-dim);

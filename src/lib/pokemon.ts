@@ -20,7 +20,8 @@ const GAME_ORDER = [
 	'legends-arceus', 'scarlet', 'violet'
 ];
 
-function gameLabel(game: string): string {
+/** Friendly display name for a game identifier. */
+export function gameName(game: string): string {
 	const labels: Record<string, string> = {
 		'firered': 'FireRed',
 		'leafgreen': 'LeafGreen',
@@ -40,7 +41,7 @@ function gameLabel(game: string): string {
 /** Every game that appears in the data, in release order. */
 export const GAMES = GAME_ORDER.filter((game) =>
 	POKEMON.some((p) => p.games.includes(game))
-).map((game) => ({ id: game, name: gameLabel(game) }));
+).map((game) => ({ id: game, name: gameName(game) }));
 
 /** All 18 types, most common first. */
 export const ALL_TYPES = [
