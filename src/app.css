@@ -1,0 +1,36 @@
+:root {
+	--bg: #0e1420;
+	--bg-soft: #151d2e;
+	--card: #1a2338;
+	--card-caught: #14352a;
+	--border: #26314a;
+	--text: #e8ecf4;
+	--text-dim: #8b95ab;
+	--accent: #ef5350;
+	--caught: #4ade80;
+	--radius: 12px;
+	color-scheme: dark;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background:
+		radial-gradient(1200px 500px at 80% -10%, rgba(239, 83, 80, 0.08), transparent),
+		var(--bg);
+	color: var(--text);
+	font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+input {
+	font: inherit;
+}
