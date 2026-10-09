@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { createQuery } from '@tanstack/svelte-query';
+	import { Settings } from '@lucide/svelte';
 	import { store } from '$lib/caught.svelte';
 	import { filters } from '$lib/filters.svelte';
 	import { fetchPokedex } from '$lib/api';
 	import { GENERATIONS, gamesIn, type Pokemon } from '$lib/pokemon';
+	import { settings } from '$lib/settings.svelte';
 	import PokemonCard from '$lib/components/PokemonCard.svelte';
 	import SearchBar from '$lib/components/SearchBar.svelte';
+	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import fallbackData from '$lib/data/pokemon.json';
 
-	let importError = $state('');
-	let fileInput = $state<HTMLInputElement>();
+	let showSettings = $state(false);
 
 	// Live data from the PokéAPI; the bundled snapshot covers SSR and first
 	// offline launches (e.g. before the query cache has ever been populated).
@@ -53,40 +55,6 @@
 			}))
 			.filter((group) => group.pokemon.length > 0);
 	});
-
-	function exportSave() {
-		const blob = new Blob([JSON.stringify(store.exportSave(), null, 2)], {
-			type: 'application/json'
-		});
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `pokelist-save-${new Date().toISOString().slice(0, 10)}.json`;
-		a.click();
-		URL.revokeObjectURL(url);
-	}
-
-	async function importSave(event: Event) {
-		importError = '';
-		const file = (event.target as HTMLInputElement).files?.[0];
-		if (!file) return;
-		try {
-			const data = JSON.parse(await file.text());
-			if (
-				store.count > 0 &&
-				!confirm(
-					`This will replace your current save (${store.count} caught). Continue?`
-				)
-			) {
-				return;
-			}
-			store.importSave(data);
-		} catch (err) {
-			importError = err instanceof Error ? err.message : 'Could not read that file';
-		} finally {
-			if (fileInput) fileInput.value = '';
-		}
-	}
 </script>
 
 <svelte:head>
@@ -109,23 +77,16 @@
 		<div class="toolbar">
 			<SearchBar games={gamesList} />
 			<div class="actions">
-				<button type="button" onclick={exportSave} disabled={store.count === 0}>
-					Export
+				<button
+					type="button"
+					class="icon-btn"
+					aria-label="Open settings"
+					onclick={() => (showSettings = true)}
+				>
+					<Settings size={18} strokeWidth={2} aria-hidden="true" />
 				</button>
-				<button type="button" onclick={() => fileInput?.click()}>Import</button>
-				<input
-					type="file"
-					accept="application/json,.json"
-					hidden
-					bind:this={fileInput}
-					onchange={importSave}
-				/>
 			</div>
 		</div>
-
-		{#if importError}
-			<p class="error" role="alert">{importError}</p>
-		{/if}
 
 		{#if hasActiveFilters}
 			<p class="filter-status">{filtered.length} of {POKEDEX.length} shown</p>
@@ -136,7 +97,7 @@
 		{/if}
 	</header>
 
-	<main>
+	<main style="--card-size: {settings.cardSize}px">
 		{#each grouped as { gen, pokemon } (gen.id)}
 			<section>
 				<h2>
@@ -164,6 +125,8 @@
 			</p>
 		{/each}
 	</main>
+
+	<SettingsModal bind:open={showSettings} />
 </div>
 
 <style>
@@ -248,9 +211,14 @@
 		cursor: not-allowed;
 	}
 
-	.error {
-		margin: 10px 0 0;
-		color: #ff8a80;
+	/* Higher specificity than `.actions button` so padding: 0 actually wins. */
+	.actions button.icon-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: stretch;
+		width: 41px;
+		padding: 0;
 	}
 
 	.filter-status {
@@ -298,7 +266,7 @@
 
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--card-size, 150px), 100%), 1fr));
 		gap: 10px;
 	}
 
@@ -309,8 +277,8 @@
 	}
 
 	@media (max-width: 640px) {
-		.grid {
-			grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+		.page {
+			padding: 16px 12px 40px;
 		}
 	}
 </style>

@@ -93,8 +93,9 @@
 	}
 
 	img {
-		width: 96px;
-		height: 96px;
+		/* Scales with the --card-size variable set by the settings modal. */
+		width: calc(var(--card-size, 150px) * 0.62);
+		height: calc(var(--card-size, 150px) * 0.62);
 		object-fit: contain;
 		filter: grayscale(0.6) opacity(0.75);
 		transition: filter 120ms ease;
@@ -112,25 +113,33 @@
 	}
 
 	.name {
-		font-size: 14px;
+		/* Scale down with small cards; break long names rather than overflow. */
+		font-size: clamp(9px, calc(var(--card-size, 150px) * 0.093), 14px);
 		font-weight: 600;
 		text-transform: capitalize;
+		text-align: center;
+		max-width: 100%;
+		overflow-wrap: anywhere;
 	}
 
 	.types {
 		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
 		gap: 4px;
 		min-height: 18px;
+		max-width: 100%;
 	}
 
 	.chip {
-		font-size: 10px;
+		font-size: clamp(8px, calc(var(--card-size, 150px) * 0.067), 10px);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: #10151f;
 		background: var(--type);
-		padding: 2px 7px;
+		padding: 2px calc(var(--card-size, 150px) * 0.045);
 		border-radius: 99px;
+		white-space: nowrap;
 	}
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ChevronDown, Search, X } from '@lucide/svelte';
 	import { filters, type CaughtFilter } from '$lib/filters.svelte';
 	import { ALL_TYPES, TYPE_COLORS, gameName } from '$lib/pokemon';
 
@@ -58,10 +59,7 @@
 <svelte:window onpointerdown={onWindowPointerdown} onkeydown={onWindowKeydown} />
 
 <div class="searchbar" class:open bind:this={bar}>
-	<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		<circle cx="11" cy="11" r="7" />
-		<path d="m20 20-3.5-3.5" />
-	</svg>
+	<Search class="icon" size={16} strokeWidth={2} aria-hidden="true" />
 
 	<input
 		type="search"
@@ -83,18 +81,14 @@
 				aria-label="Remove filter {chip.label}: {chip.value}"
 				onclick={chip.remove}
 			>
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-					<path d="M6 6l12 12M18 6L6 18" />
-				</svg>
+				<X size={10} strokeWidth={2.5} aria-hidden="true" />
 			</button>
 		</span>
 	{/each}
 
 	<button type="button" class="filters-toggle" aria-expanded={open} onclick={() => (open = !open)}>
 		Filters
-		<svg class:flip={open} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-			<path d="m6 9 6 6 6-6" />
-		</svg>
+		<ChevronDown class={open ? 'flip' : ''} size={14} strokeWidth={2} aria-hidden="true" />
 	</button>
 
 	{#if open}
@@ -176,9 +170,7 @@
 		border-color: var(--accent);
 	}
 
-	.icon {
-		width: 16px;
-		height: 16px;
+	.searchbar > :global(svg.icon) {
 		flex-shrink: 0;
 		color: var(--text-dim);
 	}
@@ -247,11 +239,6 @@
 		color: #fff;
 	}
 
-	.chip-x svg {
-		width: 9px;
-		height: 9px;
-	}
-
 	/* Filters trigger */
 	.filters-toggle {
 		display: inline-flex;
@@ -274,13 +261,11 @@
 		color: var(--text);
 	}
 
-	.filters-toggle svg {
-		width: 14px;
-		height: 14px;
+	.filters-toggle :global(svg) {
 		transition: transform 150ms ease;
 	}
 
-	.filters-toggle svg.flip {
+	.filters-toggle :global(svg.flip) {
 		transform: rotate(180deg);
 	}
 
