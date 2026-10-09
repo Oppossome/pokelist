@@ -1,6 +1,12 @@
 <script lang="ts">
-	import { filters } from '$lib/filters.svelte';
-	import { ALL_TYPES, GAMES, TYPE_COLORS, gameName } from '$lib/pokemon';
+	import { filters, type CaughtFilter } from '$lib/filters.svelte';
+	import { ALL_TYPES, TYPE_COLORS, gameName } from '$lib/pokemon';
+
+	let {
+		games = []
+	}: {
+		games?: { id: string; name: string }[];
+	} = $props();
 
 	let open = $state(false);
 	let bar: HTMLDivElement;
@@ -116,7 +122,7 @@
 						<span>All games</span>
 						{#if filters.game === ''}<span class="check">✓</span>{/if}
 					</button>
-					{#each GAMES as game (game.id)}
+					{#each games as game (game.id)}
 						<button type="button" class="game-row" class:active={filters.game === game.id} onclick={() => pickGame(game.id)}>
 							<span>{game.name}</span>
 							{#if filters.game === game.id}<span class="check">✓</span>{/if}

@@ -1,18 +1,33 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { createQuery } from '@tanstack/svelte-query';
 	import { store } from '$lib/caught.svelte';
 	import { filters } from '$lib/filters.svelte';
-	import { GENERATIONS, POKEMON, type Pokemon } from '$lib/pokemon';
+	import { fetchPokedex } from '$lib/api';
+	import { GENERATIONS, gamesIn, type Pokemon } from '$lib/pokemon';
 	import PokemonCard from '$lib/components/PokemonCard.svelte';
 	import SearchBar from '$lib/components/SearchBar.svelte';
+	import fallbackData from '$lib/data/pokemon.json';
 
 	let importError = $state('');
 	let fileInput = $state<HTMLInputElement>();
+
+	// Live data from the PokéAPI; the bundled snapshot covers SSR and first
+	// offline launches (e.g. before the query cache has ever been populated).
+	const pokedexQuery = createQuery(() => ({
+		queryKey: ['pokedex'],
+		queryFn: fetchPokedex,
+		enabled: browser
+	}));
+
+	const POKEDEX = $derived(pokedexQuery.data ?? (fallbackData as Pokemon[]));
+	const gamesList = $derived(gamesIn(POKEDEX));
 
 	const hasActiveFilters = $derived(filters.hasActive);
 
 	const filtered = $derived.by(() => {
 		const q = filters.query.trim().toLowerCase();
-		return POKEMON.filter((p) => {
+		return POKEDEX.filter((p) => {
 			if (q && !(p.name.toLowerCase().includes(q) || String(p.id).includes(q))) {
 				return false;
 			}
@@ -27,12 +42,17 @@
 		});
 	});
 
-	const grouped = $derived(
-		GENERATIONS.map((gen) => ({
-			gen,
-			pokemon: filtered.filter((p) => p.generation === gen.id)
-		})).filter((group) => group.pokemon.length > 0)
-	);
+	const grouped = $derived.by(() => {
+		// Generations come from the data so a future gen 10 shows up as "Gen 10"
+		// even before GENERATIONS gains a region name.
+		const genIds = [...new Set(POKEDEX.map((p) => p.generation))].sort((a, b) => a - b);
+		return genIds
+			.map((id) => ({
+				gen: { id, name: GENERATIONS[id - 1]?.name ?? `Gen ${id}` },
+				pokemon: filtered.filter((p) => p.generation === id)
+			}))
+			.filter((group) => group.pokemon.length > 0);
+	});
 
 	function exportSave() {
 		const blob = new Blob([JSON.stringify(store.exportSave(), null, 2)], {
@@ -64,13 +84,13 @@
 		} catch (err) {
 			importError = err instanceof Error ? err.message : 'Could not read that file';
 		} finally {
-			fileInput.value = '';
+			if (fileInput) fileInput.value = '';
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Pokévibe — catch tracker</title>
+	<title>Pokelist — catch tracker</title>
 	<meta name="description" content="Track which Pokémon you've caught, generation by generation." />
 </svelte:head>
 
@@ -79,20 +99,20 @@
 		<div class="title-row">
 			<h1>
 				<span class="logo" aria-hidden="true"></span>
-				Pokévibe
+				Pokelist
 			</h1>
 			<span class="progress">
-				{store.count} / {POKEMON.length} caught
+				{store.count} / {POKEDEX.length} caught
 			</span>
 		</div>
 
 		<div class="toolbar">
-			<SearchBar />
+			<SearchBar games={gamesList} />
 			<div class="actions">
 				<button type="button" onclick={exportSave} disabled={store.count === 0}>
 					Export
 				</button>
-				<button type="button" onclick={() => fileInput.click()}>Import</button>
+				<button type="button" onclick={() => fileInput?.click()}>Import</button>
 				<input
 					type="file"
 					accept="application/json,.json"
@@ -108,7 +128,11 @@
 		{/if}
 
 		{#if hasActiveFilters}
-			<p class="filter-status">{filtered.length} of {POKEMON.length} shown</p>
+			<p class="filter-status">{filtered.length} of {POKEDEX.length} shown</p>
+		{:else if pokedexQuery.isFetching}
+			<p class="filter-status">Syncing with PokéAPI…</p>
+		{:else if pokedexQuery.isError && !pokedexQuery.data}
+			<p class="filter-status">Can't reach PokéAPI — showing the offline snapshot.</p>
 		{/if}
 	</header>
 
@@ -287,11 +311,6 @@
 	@media (max-width: 640px) {
 		.grid {
 			grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-		}
-
-		img {
-			width: 72px;
-			height: 72px;
 		}
 	}
 </style>

@@ -1,11 +1,39 @@
-# Pokévibe
+# Pokelist
 
-A small SvelteKit Pokédex catch tracker: all 1025 Pokémon grouped by generation,
-with a search bar, click-to-mark-as-caught, and save data in localStorage.
+A small SvelteKit PWA Pokédex catch tracker: all Pokémon grouped by generation,
+with a search/facet bar, click-to-mark-as-caught, and save data in
+localStorage.
 
-Caught data never leaves your browser — it lives in `localStorage` under the key
-`pokevibe:save:v1`. Use the **Export** button to download it as JSON and
-**Import** to restore it (on this or another device).
+## Data flow
+
+- **Live data** comes from the [PokeAPI GraphQL beta
+  endpoint](https://beta.pokeapi.co/graphql/v1beta) in a single request (names,
+  generations, types, and per-game Pokédex entries) via **TanStack Query**
+  (`@tanstack/svelte-query`). Data is considered fresh for 24 hours; the query
+  cache is persisted to localStorage (`pokelist:query-cache`) so a PWA launch
+  offline uses the last synced data for up to a week.
+- **Offline snapshot**: `src/lib/data/pokemon.json` (a commit-time copy of the
+  CSV dataset) is used to prerender the grid at build time and as a fallback
+  when the API can't be reached. Regenerate it from the live GraphQL endpoint
+  or the [PokeAPI CSV
+  dataset](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv) if it
+  ever needs refreshing.
+
+- **Sprites** load lazily from the [PokeAPI sprites
+  repo](https://github.com/PokeAPI/sprites) and are cached by the service
+  worker (CacheFirst, 180 days).
+
+Caught data never leaves your browser — it lives in `localStorage` under
+`pokelist:save:v1` (older saves stored under `pokevibe:save:v1` migrate
+automatically). Use **Export** to download it as JSON and **Import** to restore
+it (validated with zod) on this or another device.
+
+## PWA
+
+`@vite-pwa/sveltekit` generates `sw.js` (Workbox, autoUpdate): the app shell is
+precached, sprites use CacheFirst runtime caching. The GraphQL endpoint is
+POST-only (not cacheable by the Cache API), so offline data resilience comes
+from the TanStack query persister instead.
 
 ## Running
 
@@ -15,7 +43,8 @@ This machine is NixOS, so run commands through the project shell:
 nix-shell --run "npm run dev"
 ```
 
-Then open http://localhost:5173.
+Then open http://localhost:5173. Service worker registration is skipped in dev
+unless you enable it.
 
 Production build (static site in `build/`):
 
@@ -24,16 +53,8 @@ nix-shell --run "npm run build"
 nix-shell --run "npm run preview"
 ```
 
-## Pokémon data
-
-`src/lib/data/pokemon.json` is generated from the
-[PokeAPI CSV dataset](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv)
-(national dex ids, names, generations, and type assignments of each species'
-default form). To refresh it:
+Type checking:
 
 ```sh
-nix-shell --run "npm run build:data"
+nix-shell --run "npm run check"
 ```
-
-Sprites are loaded lazily from the
-[PokeAPI sprites](https://github.com/PokeAPI/sprites) repository.

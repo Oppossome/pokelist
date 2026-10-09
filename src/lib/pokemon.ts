@@ -1,5 +1,3 @@
-import data from '$lib/data/pokemon.json';
-
 export interface Pokemon {
 	id: number;
 	name: string;
@@ -8,7 +6,18 @@ export interface Pokemon {
 	games: string[];
 }
 
-export const POKEMON: Pokemon[] = data;
+/** Region names for generations 1-9; later generations fall back to "Gen N". */
+export const GENERATIONS = [
+	{ id: 1, name: 'Kanto' },
+	{ id: 2, name: 'Johto' },
+	{ id: 3, name: 'Hoenn' },
+	{ id: 4, name: 'Sinnoh' },
+	{ id: 5, name: 'Unova' },
+	{ id: 6, name: 'Kalos' },
+	{ id: 7, name: 'Alola' },
+	{ id: 8, name: 'Galar' },
+	{ id: 9, name: 'Paldea' }
+] as const;
 
 /** Release order for game labels in the filter dropdown. */
 const GAME_ORDER = [
@@ -38,37 +47,26 @@ export function gameName(game: string): string {
 		.join(' ');
 }
 
-/** Every game that appears in the data, in release order. */
-export const GAMES = GAME_ORDER.filter((game) =>
-	POKEMON.some((p) => p.games.includes(game))
-).map((game) => ({ id: game, name: gameName(game) }));
+/** Every game present in the data, in release order. Unknown games go last. */
+export function gamesIn(pokemon: Pokemon[]): { id: string; name: string }[] {
+	const present = new Set<string>();
+	for (const p of pokemon) for (const g of p.games) present.add(g);
+	return [...present]
+		.map((id) => ({ id, index: GAME_ORDER.indexOf(id) }))
+		.sort((a, b) => {
+			const ai = a.index === -1 ? GAME_ORDER.length : a.index;
+			const bi = b.index === -1 ? GAME_ORDER.length : b.index;
+			return ai - bi || a.id.localeCompare(b.id);
+		})
+		.map((g) => ({ id: g.id, name: gameName(g.id) }));
+}
 
-/** All 18 types, most common first. */
+/** The 18 stable types for filter chips. */
 export const ALL_TYPES = [
 	'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting',
 	'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost',
 	'dragon', 'dark', 'steel', 'fairy'
 ];
-
-export const GENERATIONS = [
-	{ id: 1, name: 'Kanto' },
-	{ id: 2, name: 'Johto' },
-	{ id: 3, name: 'Hoenn' },
-	{ id: 4, name: 'Sinnoh' },
-	{ id: 5, name: 'Unova' },
-	{ id: 6, name: 'Kalos' },
-	{ id: 7, name: 'Alola' },
-	{ id: 8, name: 'Galar' },
-	{ id: 9, name: 'Paldea' }
-] as const;
-
-export function homeSprite(id: number): string {
-	return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
-}
-
-export function fallbackSprite(id: number): string {
-	return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-}
 
 export const TYPE_COLORS: Record<string, string> = {
 	normal: '#9099a1',
@@ -90,3 +88,11 @@ export const TYPE_COLORS: Record<string, string> = {
 	steel: '#5a8ea1',
 	fairy: '#ec8fe6'
 };
+
+export function homeSprite(id: number): string {
+	return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
+}
+
+export function fallbackSprite(id: number): string {
+	return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+}

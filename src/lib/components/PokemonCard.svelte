@@ -16,10 +16,13 @@
 		onToggle: (id: number) => void;
 	} = $props();
 
-	let sprite = $state(homeSprite(pokemon.id));
+	let failed = $state(false);
+
+	// Falls back to the classic sprite style if the HOME sprite is missing.
+	const sprite = $derived(failed ? fallbackSprite(pokemon.id) : homeSprite(pokemon.id));
 
 	function retryFallback() {
-		if (sprite !== fallbackSprite(pokemon.id)) sprite = fallbackSprite(pokemon.id);
+		failed = true;
 	}
 </script>
 
