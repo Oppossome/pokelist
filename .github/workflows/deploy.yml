@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - uses: actions/configure-pages@v5
+        with:
+          # Enable Pages on first run so the deploy never 404s.
+          enablement: true
       - run: npm run build
         env:
           # Project pages serve under /<repo-name>/ — SvelteKit and the
