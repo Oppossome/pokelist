@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { settings } from '$lib/settings.svelte';
 	import type { Pokemon } from '$lib/pokemon';
+	import Pokeball from '$lib/components/Pokeball.svelte';
 	import {
 		homeSprite,
 		fallbackSprite,
@@ -34,15 +36,17 @@
 	title={caught ? `${pokemon.name} — caught` : `${pokemon.name} — click to mark as caught`}
 	onclick={() => onToggle(pokemon.id)}
 >
-	<span class="pokeball" aria-hidden="true"></span>
+	<span class="pokeball" class:caught aria-hidden="true"><Pokeball /></span>
 	<img src={sprite} alt="" loading="lazy" width="96" height="96" onerror={retryFallback} />
 	<span class="dex">#{String(pokemon.id).padStart(4, '0')}</span>
 	<span class="name">{pokemon.name}</span>
-	<span class="types">
-		{#each pokemon.types as type (type)}
-			<span class="chip" style="--type: {TYPE_COLORS[type] ?? '#9099a1'}">{type}</span>
-		{/each}
-	</span>
+	{#if settings.showTypes}
+		<span class="types">
+			{#each pokemon.types as type (type)}
+				<span class="chip" style="--type: {TYPE_COLORS[type] ?? '#9099a1'}">{type}</span>
+			{/each}
+		</span>
+	{/if}
 </button>
 
 <style>
@@ -80,16 +84,13 @@
 		right: 8px;
 		width: 14px;
 		height: 14px;
-		border-radius: 50%;
-		border: 2px solid var(--border);
-		background: linear-gradient(to bottom, var(--accent) 42%, #f5f6fa 42%, #f5f6fa 58%, #2b3550 58%);
+		display: block;
 		opacity: 0.25;
 		transition: opacity 120ms ease;
 	}
 
-	.card.caught .pokeball {
+	.pokeball.caught {
 		opacity: 1;
-		border-color: var(--caught);
 	}
 
 	img {

@@ -144,7 +144,7 @@
 			</div>
 
 			{#if filters.hasActive}
-				<button type="button" class="clear-all" onclick={filters.clearAll}>Clear all filters</button>
+				<button type="button" class="clear-all" onclick={() => filters.clearAll()}>Clear all filters</button>
 			{/if}
 		</div>
 	{/if}

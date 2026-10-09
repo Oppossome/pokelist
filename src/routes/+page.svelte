@@ -8,6 +8,7 @@
 	import { GENERATIONS, gamesIn, type Pokemon } from '$lib/pokemon';
 	import { settings } from '$lib/settings.svelte';
 	import PokemonCard from '$lib/components/PokemonCard.svelte';
+	import Pokeball from '$lib/components/Pokeball.svelte';
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import fallbackData from '$lib/data/pokemon.json';
@@ -66,7 +67,7 @@
 	<header>
 		<div class="title-row">
 			<h1>
-				<span class="logo" aria-hidden="true"></span>
+				<span class="logo" aria-hidden="true"><Pokeball /></span>
 				Pokelist
 			</h1>
 			<span class="progress">
@@ -120,7 +121,7 @@
 			<p class="empty">
 				No Pokémon match the current {hasActiveFilters ? 'search and filters' : 'search'}.
 				{#if hasActiveFilters}
-					<button type="button" class="clear" onclick={filters.clearAll}>Clear filters</button>
+					<button type="button" class="clear" onclick={() => filters.clearAll()}>Clear filters</button>
 				{/if}
 			</p>
 		{/each}
@@ -162,12 +163,10 @@
 	}
 
 	.logo {
+		display: block;
 		width: 22px;
 		height: 22px;
-		border-radius: 50%;
-		border: 3px solid #1a2338;
-		background: linear-gradient(to bottom, var(--accent) 42%, #f5f6fa 42%, #f5f6fa 58%, #2b3550 58%);
-		box-shadow: 0 0 0 1px var(--border);
+		flex-shrink: 0;
 	}
 
 	.progress {

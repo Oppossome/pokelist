@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LayoutGrid, Save, X } from '@lucide/svelte';
+	import { LayoutGrid, Save, Tag, X } from '@lucide/svelte';
 	import { store } from '$lib/caught.svelte';
 	import { settings } from '$lib/settings.svelte';
 
@@ -98,6 +98,27 @@
 					oninput={() => settings.setCardSize(size)}
 					use:autofocus
 				/>
+			</section>
+
+			<section class="section">
+				<div class="section-head">
+					<span class="section-icon" aria-hidden="true">
+						<Tag size={14} strokeWidth={2} />
+					</span>
+					<h3>Type chips</h3>
+					<button
+						type="button"
+						class="switch"
+						class:on={settings.showTypes}
+						role="switch"
+						aria-checked={settings.showTypes}
+						onclick={() => settings.toggleTypes()}
+					>
+						<span class="knob"></span>
+						<span class="sr-only">Toggle type chips</span>
+					</button>
+				</div>
+				<p class="desc">Show each Pokémon's type badges on its card.</p>
 			</section>
 
 			<section class="section">
@@ -240,6 +261,46 @@
 		font-weight: 600;
 		color: var(--text-dim);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.switch {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
+		width: 38px;
+		height: 22px;
+		padding: 2px;
+		background: var(--border);
+		border: none;
+		border-radius: 99px;
+		cursor: pointer;
+		transition: background 150ms ease;
+	}
+
+	.switch.on {
+		background: var(--caught);
+	}
+
+	.knob {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+		transition: transform 150ms ease;
+	}
+
+	.switch.on .knob {
+		transform: translateX(18px);
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	.desc {
