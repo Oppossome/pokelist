@@ -8,11 +8,10 @@ export default defineConfig({
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			manifest: {
-				id: '/',
 				name: 'Pokelist — catch tracker',
 				short_name: 'Pokelist',
 				description: 'Track which Pokémon you have caught, generation by generation.',
-				start_url: '/',
+				start_url: '.',
 				theme_color: '#0e1420',
 				background_color: '#0e1420',
 				display: 'standalone'

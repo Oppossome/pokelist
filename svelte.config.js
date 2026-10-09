@@ -5,7 +5,10 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		// GitHub project pages serve under /<repo-name>/; CI sets BASE_PATH
+		// to '/<repo-name>' while local dev/build stays at the root.
+		paths: { base: process.env.BASE_PATH ?? '' }
 	}
 };
 

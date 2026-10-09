@@ -4,6 +4,10 @@ A small SvelteKit PWA Pokédex catch tracker: all Pokémon grouped by generation
 with a search/facet bar, click-to-mark-as-caught, and save data in
 localStorage.
 
+> **Disclaimer:** this is a vibecoded project I made for my wife. While I have
+> read the code, I make no guarantees about anything — use at your own risk and
+> export your save now and then.
+
 ## Data flow
 
 - **Live data** comes from the [PokeAPI GraphQL beta
@@ -24,8 +28,7 @@ localStorage.
   worker (CacheFirst, 180 days).
 
 Caught data never leaves your browser — it lives in `localStorage` under
-`pokelist:save:v1` (older saves stored under `pokevibe:save:v1` migrate
-automatically). Use **Export** to download it as JSON and **Import** to restore
+`pokelist:save:v1`. Use **Export** to download it as JSON and **Import** to restore
 it (validated with zod) on this or another device.
 
 ## PWA
@@ -58,3 +61,11 @@ Type checking:
 ```sh
 nix-shell --run "npm run check"
 ```
+
+## Deploying to GitHub Pages
+
+`.github/workflows/deploy.yml` builds and deploys on every push to `main`
+(run `svelte-check` → build with `BASE_PATH=/<repo-name>` → deploy). To
+activate: create the GitHub repo, push, then set **Settings → Pages → Source**
+to **GitHub Actions**. Local builds ignore the base path, so `npm run dev` and
+`npm run preview` work unchanged.

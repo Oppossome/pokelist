@@ -2,14 +2,9 @@ import { browser } from '$app/environment';
 import { z } from 'zod';
 
 const STORAGE_KEY = 'pokelist:save:v1';
-// Renamed from "pokevibe" — legacy saves migrate to the new key on load.
-const LEGACY_STORAGE_KEY = 'pokevibe:save:v1';
 
-// 'pokevibe' still accepted so saves exported before the rename import fine.
 export const saveDataSchema = z.object({
-	app: z.union([z.literal('pokelist'), z.literal('pokevibe')], {
-		error: 'Not a Pokelist save file'
-	}),
+	app: z.literal('pokelist', { error: 'Not a Pokelist save file' }),
 	version: z.number().int().positive(),
 	caught: z.array(z.number().int().positive(), { error: 'Save file has no caught list' }),
 	exportedAt: z.string().datetime().optional()
@@ -28,7 +23,7 @@ class CaughtStore {
 	constructor() {
 		if (browser) {
 			try {
-				const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+				const raw = localStorage.getItem(STORAGE_KEY);
 				if (raw) this.#caught = new Set(sanitize(JSON.parse(raw).caught));
 			} catch {
 				// Corrupted save — start fresh rather than crash.
@@ -74,8 +69,6 @@ class CaughtStore {
 	#persist() {
 		if (!browser) return;
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(this.exportSave()));
-		// Migration: don't leave the old key holding stale data.
-		localStorage.removeItem(LEGACY_STORAGE_KEY);
 	}
 }
 
