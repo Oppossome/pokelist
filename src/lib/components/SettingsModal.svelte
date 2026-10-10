@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LayoutGrid, Save, Tag, X } from '@lucide/svelte';
+	import { Group, LayoutGrid, Save, Tag, X } from '@lucide/svelte';
 	import { store } from '$lib/caught.svelte';
 	import { settings } from '$lib/settings.svelte';
 
@@ -77,6 +77,36 @@
 					<X size={12} strokeWidth={2.5} aria-hidden="true" />
 				</button>
 			</header>
+
+			<section class="section">
+				<div class="section-head">
+					<span class="section-icon" aria-hidden="true">
+						<Group size={14} strokeWidth={2} />
+					</span>
+					<h3>Grouping</h3>
+				</div>
+				<p class="desc">Split the grid into generations, or show one continuous list.</p>
+				<div class="segmented" role="radiogroup" aria-label="Grid grouping">
+					<button
+						type="button"
+						role="radio"
+						aria-checked={settings.groupBy === 'generation'}
+						class:on={settings.groupBy === 'generation'}
+						onclick={() => settings.setGroupBy('generation')}
+					>
+						By generation
+					</button>
+					<button
+						type="button"
+						role="radio"
+						aria-checked={settings.groupBy === 'none'}
+						class:on={settings.groupBy === 'none'}
+						onclick={() => settings.setGroupBy('none')}
+					>
+						None
+					</button>
+				</div>
+			</section>
 
 			<section class="section">
 				<div class="section-head">
@@ -315,6 +345,38 @@
 		width: 100%;
 		accent-color: var(--accent);
 		cursor: pointer;
+	}
+
+	.segmented {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4px;
+		margin-left: 38px;
+		padding: 3px;
+		background: var(--bg-soft);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+
+	.segmented button {
+		padding: 8px 10px;
+		background: transparent;
+		border: none;
+		border-radius: 7px;
+		color: var(--text-dim);
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 120ms ease, color 120ms ease;
+	}
+
+	.segmented button:hover:not(.on) {
+		color: var(--text);
+	}
+
+	.segmented button.on {
+		background: var(--accent);
+		color: var(--bg);
 	}
 
 	.save-actions {

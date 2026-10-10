@@ -5,17 +5,19 @@ const STORAGE_KEY = 'pokelist:settings:v1';
 
 export const settingsSchema = z.object({
 	cardSize: z.number().int().min(80).max(260),
-	// .default(true) keeps older stored settings (without this key) valid.
-	showTypes: z.boolean().default(true)
+	// .default(...) keeps older stored settings (without these keys) valid.
+	showTypes: z.boolean().default(true),
+	groupBy: z.enum(['generation', 'none']).default('generation')
 });
 
 export type AppSettings = z.infer<typeof settingsSchema>;
 
-const DEFAULTS: AppSettings = { cardSize: 150, showTypes: true };
+const DEFAULTS: AppSettings = { cardSize: 150, showTypes: true, groupBy: 'generation' };
 
 class SettingsStore {
 	cardSize = $state(DEFAULTS.cardSize);
 	showTypes = $state(DEFAULTS.showTypes);
+	groupBy = $state<AppSettings['groupBy']>(DEFAULTS.groupBy);
 
 	constructor() {
 		if (browser) {
@@ -26,6 +28,7 @@ class SettingsStore {
 					if (parsed.success) {
 						this.cardSize = parsed.data.cardSize;
 						this.showTypes = parsed.data.showTypes;
+						this.groupBy = parsed.data.groupBy;
 					}
 				}
 			} catch {
@@ -44,11 +47,18 @@ class SettingsStore {
 		this.#persist();
 	}
 
+	setGroupBy(value: AppSettings['groupBy']) {
+		this.groupBy = value;
+		this.#persist();
+	}
+
 	#persist() {
 		if (!browser) return;
 		localStorage.setItem(
 			STORAGE_KEY,
-			JSON.stringify(settingsSchema.parse({ cardSize: this.cardSize, showTypes: this.showTypes }))
+			JSON.stringify(
+				settingsSchema.parse({ cardSize: this.cardSize, showTypes: this.showTypes, groupBy: this.groupBy })
+			)
 		);
 	}
 }

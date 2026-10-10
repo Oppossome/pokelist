@@ -46,6 +46,7 @@
 	});
 
 	const grouped = $derived.by(() => {
+		if (settings.groupBy === 'none') return [];
 		// Generations come from the data so a future gen 10 shows up as "Gen 10"
 		// even before GENERATIONS gains a region name.
 		const genIds = [...new Set(POKEDEX.map((p) => p.generation))].sort((a, b) => a - b);
@@ -99,16 +100,19 @@
 	</header>
 
 	<main style="--card-size: {settings.cardSize}px">
-		{#each grouped as { gen, pokemon } (gen.id)}
-			<section>
-				<h2>
-					<span class="gen-name">Gen {gen.id} — {gen.name}</span>
-					<span class="gen-count">
-						{pokemon.filter((p) => store.caught.has(p.id)).length}/{pokemon.length}
-					</span>
-				</h2>
+		{#snippet emptyState()}
+			<p class="empty">
+				No Pokémon match the current {hasActiveFilters ? 'search and filters' : 'search'}.
+				{#if hasActiveFilters}
+					<button type="button" class="clear" onclick={() => filters.clearAll()}>Clear filters</button>
+				{/if}
+			</p>
+		{/snippet}
+
+		{#if settings.groupBy === 'none'}
+			{#if filtered.length > 0}
 				<div class="grid">
-					{#each pokemon as mon (mon.id)}
+					{#each filtered as mon (mon.id)}
 						<PokemonCard
 							pokemon={mon}
 							caught={store.caught.has(mon.id)}
@@ -116,15 +120,32 @@
 						/>
 					{/each}
 				</div>
-			</section>
+			{:else}
+				{@render emptyState()}
+			{/if}
 		{:else}
-			<p class="empty">
-				No Pokémon match the current {hasActiveFilters ? 'search and filters' : 'search'}.
-				{#if hasActiveFilters}
-					<button type="button" class="clear" onclick={() => filters.clearAll()}>Clear filters</button>
-				{/if}
-			</p>
-		{/each}
+			{#each grouped as { gen, pokemon } (gen.id)}
+				<section>
+					<h2>
+						<span class="gen-name">Gen {gen.id} — {gen.name}</span>
+						<span class="gen-count">
+							{pokemon.filter((p) => store.caught.has(p.id)).length}/{pokemon.length}
+						</span>
+					</h2>
+					<div class="grid">
+						{#each pokemon as mon (mon.id)}
+							<PokemonCard
+								pokemon={mon}
+								caught={store.caught.has(mon.id)}
+								onToggle={(id) => store.toggle(id)}
+							/>
+						{/each}
+					</div>
+				</section>
+			{:else}
+				{@render emptyState()}
+			{/each}
+		{/if}
 	</main>
 
 	<SettingsModal bind:open={showSettings} />
@@ -261,6 +282,12 @@
 		font-weight: 600;
 		color: var(--text-dim);
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* Only the ungrouped flat grid — grids inside sections get spacing from
+	   `main section` above. */
+	main > .grid {
+		margin-top: 28px;
 	}
 
 	.grid {
