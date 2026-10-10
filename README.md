@@ -28,8 +28,12 @@ localStorage.
   worker (CacheFirst, 180 days).
 
 Caught data never leaves your browser — it lives in `localStorage` under
-`pokelist:save:v1`. Use **Export** to download it as JSON and **Import** to restore
-it (validated with zod) on this or another device.
+`pokelist:saves:v1` as a list of named saves, one of which is active at a time,
+so you can keep a separate save per game or run and switch between them in
+**Settings → Saves**. Single-save data from the older `pokelist:save:v1` key is
+adopted into the first save on load. Each save has its own **Export** button that
+downloads that save as JSON — use **Import** in the section footer to restore one
+into the active save (validated with zod) on this or another device.
 
 ## PWA
 
