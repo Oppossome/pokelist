@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Group, LayoutGrid, Save, Tag, X } from '@lucide/svelte';
+	import { Group, Heart, LayoutGrid, Save, Tag, X } from '@lucide/svelte';
 	import { store } from '$lib/caught.svelte';
 	import { settings } from '$lib/settings.svelte';
 
@@ -78,13 +78,14 @@
 				</button>
 			</header>
 
-			<section class="section">
-				<div class="section-head">
-					<span class="section-icon" aria-hidden="true">
-						<Group size={14} strokeWidth={2} />
-					</span>
-					<h3>Grouping</h3>
-				</div>
+			<div class="body">
+				<section class="section">
+					<div class="section-head">
+						<span class="section-icon" aria-hidden="true">
+							<Group size={14} strokeWidth={2} />
+						</span>
+						<h3>Grouping</h3>
+					</div>
 				<p class="desc">Split the grid into generations, or show one continuous list.</p>
 				<div class="segmented" role="radiogroup" aria-label="Grid grouping">
 					<button
@@ -179,6 +180,28 @@
 					<p class="error" role="alert">{importError}</p>
 				{/if}
 			</section>
+
+			<section class="section">
+				<div class="section-head">
+					<span class="section-icon" aria-hidden="true">
+						<Heart size={14} strokeWidth={2} />
+					</span>
+					<h3>About</h3>
+				</div>
+				<p class="desc">
+					Made with lots of love — and a very patient wife who deserves a huge
+					thank you. ❤️
+				</p>
+				<a
+					class="repo-link"
+					href="https://github.com/Oppossome/pokelist"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					View source on GitHub
+				</a>
+			</section>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -196,12 +219,21 @@
 	}
 
 	.modal {
+		display: flex;
+		flex-direction: column;
 		width: min(440px, 100%);
+		max-height: min(640px, calc(100dvh - 40px));
 		background: var(--card);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 		animation: modal-in 160ms ease;
+	}
+
+	.body {
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	@keyframes modal-in {
@@ -411,6 +443,24 @@
 		color: #ff8a80;
 	}
 
+	.repo-link {
+		display: inline-block;
+		margin-left: 38px;
+		padding: 8px 14px;
+		background: var(--bg-soft);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		color: var(--text);
+		font-size: 13px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: border-color 120ms ease;
+	}
+
+	.repo-link:hover {
+		border-color: var(--accent);
+	}
+
 	@media (max-width: 480px) {
 		.overlay {
 			place-items: end center;
@@ -419,6 +469,7 @@
 
 		.modal {
 			width: 100%;
+			max-height: calc(100dvh - 24px);
 			border-radius: var(--radius) var(--radius) 0 0;
 			animation: sheet-in 200ms ease;
 		}

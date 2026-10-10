@@ -180,6 +180,7 @@
 		gap: 10px;
 		margin: 0;
 		font-size: 26px;
+		line-height: 1;
 		letter-spacing: 0.01em;
 	}
 
@@ -188,6 +189,11 @@
 		width: 22px;
 		height: 22px;
 		flex-shrink: 0;
+	}
+
+	/* Inline SVGs sit on the text baseline, which pushes them off-center. */
+	.logo :global(svg) {
+		display: block;
 	}
 
 	.progress {
