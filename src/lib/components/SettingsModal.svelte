@@ -374,7 +374,8 @@
 	}
 
 	input[type='range'] {
-		width: 100%;
+		width: calc(100% - 38px);
+		margin-left: 38px;
 		accent-color: var(--accent);
 		cursor: pointer;
 	}
@@ -414,6 +415,7 @@
 	.save-actions {
 		display: flex;
 		gap: 8px;
+		margin-left: 38px;
 	}
 
 	.save-actions button {
